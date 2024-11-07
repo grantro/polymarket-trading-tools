@@ -1,0 +1,8 @@
+{
+  "short_name": "Polymarket Tools",
+  "name": "Polymarket Trading Tools",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

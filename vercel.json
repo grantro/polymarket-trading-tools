@@ -1,0 +1,35 @@
+{
+    "version": 2,
+    "buildCommand": "npm install && npm run build",
+    "installCommand": "npm install",
+    "framework": "create-react-app",
+    "builds": [
+      {
+        "src": "package.json",
+        "use": "@vercel/static-build",
+        "config": { 
+          "distDir": "build",
+          "installCommand": "npm install",
+          "buildCommand": "npm run build"
+        }
+      }
+    ],
+    "routes": [
+      {
+        "src": "/static/(.*)",
+        "dest": "/static/$1"
+      },
+      {
+        "src": "/favicon.ico",
+        "dest": "/favicon.ico"
+      },
+      {
+        "src": "/manifest.json",
+        "dest": "/manifest.json"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/index.html"
+      }
+    ]
+  }
