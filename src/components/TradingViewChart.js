@@ -101,13 +101,34 @@ function TradingViewChart({
       height: 300,
       rightPriceScale: {
         borderVisible: false,
+        // Add this new scaleMargins config
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
       },
       timeScale: {
         borderVisible: false,
         timeVisible: true,
         secondsVisible: false,
       },
+      // Add this new crosshair config
+      crosshair: {
+        mode: 1,
+        vertLine: {
+          width: 1,
+          color: '#758696',
+          style: 1,
+        },
+        horzLine: {
+          width: 1,
+          color: '#758696',
+          style: 1,
+        },
+      },
     });
+    
+    window.addEventListener('resize', handleResize);
 
     const mainSeries = chart.addAreaSeries({
       lineColor: '#2962FF',
@@ -131,6 +152,7 @@ function TradingViewChart({
     };
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       chart.remove();
     };
   }, [data]);
