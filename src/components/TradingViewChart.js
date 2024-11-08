@@ -137,6 +137,17 @@ function TradingViewChart({
       lineWidth: 2,
     });
 
+    const handleResize = () => {
+      if (chartRef.current?.chart && chartContainerRef.current) {
+        chart.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+        });
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
     const formattedData = formatPolymarketData(data);
     
     if (formattedData.length > 0) {
