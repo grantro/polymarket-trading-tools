@@ -41,15 +41,23 @@ function TradingViewChart({
   // Update indicators when data changes
   const updateIndicators = (formattedData) => {
     if (!chartRef.current?.chart) return;
-
-    // Clear existing indicator series
-    if (chartRef.current.indicatorSeries) {
+  
+    // Clear existing indicator series more safely
+    if (chartRef.current.indicatorSeries && Array.isArray(chartRef.current.indicatorSeries)) {
       chartRef.current.indicatorSeries.forEach(series => {
-        chartRef.current.chart.removeSeries(series);
+        if (series && chartRef.current.chart) {
+          try {
+            chartRef.current.chart.removeSeries(series);
+          } catch (error) {
+            console.log('Error removing series:', error);
+          }
+        }
       });
     }
+  
+    // Reset the indicator series array
     chartRef.current.indicatorSeries = [];
-
+  
     // Add new indicator series
     activeIndicators.forEach(indicator => {
       try {
@@ -68,15 +76,18 @@ function TradingViewChart({
           default:
             return;
         }
-
-        if (indicatorData && indicatorData.length > 0) {
+  
+        if (indicatorData && indicatorData.length > 0 && chartRef.current?.chart) {
           const series = chartRef.current.chart.addLineSeries({
             color: indicator.color,
             lineWidth: 1,
             title: indicator.label,
           });
-          series.setData(indicatorData);
-          chartRef.current.indicatorSeries.push(series);
+          
+          if (series) {
+            series.setData(indicatorData);
+            chartRef.current.indicatorSeries.push(series);
+          }
         }
       } catch (error) {
         console.error(`Error adding ${indicator.label}:`, error);
