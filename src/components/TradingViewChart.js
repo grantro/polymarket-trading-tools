@@ -84,89 +84,88 @@ function TradingViewChart({
     });
   };
 
-  // Initialize chart
-  useEffect(() => {
-    if (!chartContainerRef.current || !data) return;
+// Move handleResize definition before the event listener setup
 
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { color: '#ffffff' },
-        textColor: '#191919',
-      },
-      grid: {
-        vertLines: { color: '#f0f0f0' },
-        horzLines: { color: '#f0f0f0' },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 300,
-      rightPriceScale: {
-        borderVisible: false,
-        // Add this new scaleMargins config
-        scaleMargins: {
-          top: 0.1,
-          bottom: 0.1,
-        },
-      },
-      timeScale: {
-        borderVisible: false,
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      // Add this new crosshair config
-      crosshair: {
-        mode: 1,
-        vertLine: {
-          width: 1,
-          color: '#758696',
-          style: 1,
-        },
-        horzLine: {
-          width: 1,
-          color: '#758696',
-          style: 1,
-        },
-      },
-    });
-    
-    window.addEventListener('resize', handleResize);
+useEffect(() => {
+  if (!chartContainerRef.current || !data) return;
 
-    const mainSeries = chart.addAreaSeries({
-      lineColor: '#2962FF',
-      topColor: 'rgba(41, 98, 255, 0.3)',
-      bottomColor: 'rgba(41, 98, 255, 0)',
-      lineWidth: 2,
-    });
-
-    const handleResize = () => {
-      if (chartRef.current?.chart && chartContainerRef.current) {
-        chart.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-        });
-      }
-    };
-
-    // Add event listener
-    window.addEventListener('resize', handleResize);
-
-    const formattedData = formatPolymarketData(data);
-    
-    if (formattedData.length > 0) {
-      mainSeries.setData(formattedData);
-      updateIndicators(formattedData);
-      chart.timeScale().fitContent();
+  // First, define the handleResize function
+  const handleResize = () => {
+    if (chartRef.current?.chart && chartContainerRef.current) {
+      chart.applyOptions({
+        width: chartContainerRef.current.clientWidth,
+      });
     }
+  };
 
-    chartRef.current = {
-      chart,
-      mainSeries,
-      indicatorSeries: [],
-    };
+  const chart = createChart(chartContainerRef.current, {
+    layout: {
+      background: { color: '#ffffff' },
+      textColor: '#191919',
+    },
+    grid: {
+      vertLines: { color: '#f0f0f0' },
+      horzLines: { color: '#f0f0f0' },
+    },
+    width: chartContainerRef.current.clientWidth,
+    height: 300,
+    rightPriceScale: {
+      borderVisible: false,
+      scaleMargins: {
+        top: 0.1,
+        bottom: 0.1,
+      },
+    },
+    timeScale: {
+      borderVisible: false,
+      timeVisible: true,
+      secondsVisible: false,
+    },
+    crosshair: {
+      mode: 1,
+      vertLine: {
+        width: 1,
+        color: '#758696',
+        style: 1,
+      },
+      horzLine: {
+        width: 1,
+        color: '#758696',
+        style: 1,
+      },
+    },
+  });
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [data]);
+  // Add event listener after function is defined
+  window.addEventListener('resize', handleResize);
+
+  const mainSeries = chart.addAreaSeries({
+    lineColor: '#2962FF',
+    topColor: 'rgba(41, 98, 255, 0.3)',
+    bottomColor: 'rgba(41, 98, 255, 0)',
+    lineWidth: 2,
+  });
+
+  const formattedData = formatPolymarketData(data);
+  
+  if (formattedData.length > 0) {
+    mainSeries.setData(formattedData);
+    updateIndicators(formattedData);
+    chart.timeScale().fitContent();
+  }
+
+  chartRef.current = {
+    chart,
+    mainSeries,
+    indicatorSeries: [],
+  };
+
+  // Clean up
+  return () => {
+    window.removeEventListener('resize', handleResize);
+    chart.remove();
+  };
+}, [data, updateIndicators]);
 
   return (
     <div className="trading-view-chart space-y-4">

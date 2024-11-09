@@ -88,7 +88,7 @@ const handleIndicatorRemove = (indicatorId) => {
   return (
     <div className="App">
       <header>
-        <h1>Polymarket Visualizer</h1>
+        <h1>Prediction Terminal</h1>
       </header>
       <main>
         <div className="search-container">
