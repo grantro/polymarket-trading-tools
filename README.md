@@ -1,7 +1,7 @@
 ## Technical Stack
 
 - React 18
-- Recharts for data visualization
+- Advanced Charts by TradingView for data visualization
 - Axios for API calls
 - TailwindCSS for styling
 
