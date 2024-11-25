@@ -124,20 +124,6 @@ header h1 {
   transition: background-color 0.2s;
 }
 
-.arrow-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  margin-right: 12px;
-  font-size: 12px;
-  color: #4A5568;
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
 .market-header:hover {
   background-color: #EDF2F7;
 }
@@ -221,4 +207,20 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.market-slugs li {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.market-slugs li:hover {
+  background-color: #f3f4f6;
+}
+
+.market-slugs li.selected {
+  background-color: #e0f2fe;
+  color: #1d4ed8;
 }

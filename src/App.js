@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MarketCard from './components/MarketCard';
+import TradingViewChart from './components/TradingViewChart';
 import { useAppContext } from './context/AppContext';
 import API from './services/api';
 import './App.css';
@@ -10,24 +10,25 @@ function App() {
     setEventData, 
     marketsData, 
     setMarketsData,
-    expandedMarkets, 
     setExpandedMarkets 
   } = useAppContext();
   
+  const [selectedMarket, setSelectedMarket] = useState(null)
+
+  const handleMarketSelect = (market) => {
+    setSelectedMarket(market);
+  };
+
+  const [currentOutcome, setCurrentOutcome] = useState('YES');
+  const handleOutcomeChange = (outcome) => {
+    setCurrentOutcome(outcome);
+  };
+
   const [slug, setSlug] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeIndicators, setActiveIndicators] = useState([]);
 
-const handleIndicatorAdd = (indicator) => {
-  setActiveIndicators(prev => [...prev, indicator]);
-};
-
-const handleIndicatorRemove = (indicatorId) => {
-  setActiveIndicators(prev => prev.filter(ind => ind.id !== indicatorId));
-};
-
-  const [isNetworkError, setIsNetworkError] = useState(false);
+  const [setIsNetworkError] = useState(false);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -90,13 +91,6 @@ const handleIndicatorRemove = (indicatorId) => {
     }
   };
 
-  const toggleMarketExpansion = (conditionId) => {
-    setExpandedMarkets(prev => ({
-      ...prev,
-      [conditionId]: !prev[conditionId]
-    }));
-  };
-
   return (
     <div className="App">
       <header>
@@ -118,28 +112,41 @@ const handleIndicatorRemove = (indicatorId) => {
         {error && <p className="error">{error}</p>}
         
         {eventData && (
-          <div className="event-info">
-            <h2>{eventData.title}</h2>
-            <p>{eventData.description}</p>
-          </div>
-        )}
-
-        {marketsData.length > 0 && (
-          <div className="markets-container">
+        <div className="event-info">
+          <h2>{eventData.title}</h2>
+          <p>{eventData.description}</p>
+          <div className="market-slugs mt-4">
+            <h3 className="text-sm font-medium text-gray-600 mb-2">Markets:</h3>
+            <ul className="list-none pl-0">
             {marketsData.map((market) => (
-              <div key={market.conditionId} className="border border-gray-200 rounded-lg mb-4 bg-white">
-                <MarketCard
-                  market={market}
-                  expandedMarkets={expandedMarkets}
-                  onToggleExpand={toggleMarketExpansion}
-                  activeIndicators={activeIndicators}
-                  onIndicatorAdd={handleIndicatorAdd}
-                  onIndicatorRemove={handleIndicatorRemove}
-                />
-              </div>
+              <li 
+                key={market.conditionId} 
+                className={`text-sm px-3 py-2 rounded cursor-pointer transition-colors
+                  ${selectedMarket?.conditionId === market.conditionId 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-500 hover:bg-gray-100'}`}
+                onClick={() => handleMarketSelect(market)}
+              >
+                {market.market_slug || market.conditionId}
+              </li>
             ))}
+            </ul>
           </div>
-        )}
+        </div>
+      )}
+      {selectedMarket && (
+        <div className="chart-wrapper mt-4">
+          <TradingViewChart
+            data={currentOutcome === 'YES' ? 
+              (selectedMarket.priceData?.YES || selectedMarket.priceData?.Yes) : 
+              (selectedMarket.priceData?.NO || selectedMarket.priceData?.No)}
+            containerId={`tv_chart_${selectedMarket.market_slug || selectedMarket.conditionId}`}
+            symbol={selectedMarket.market_slug}
+            currentOutcome={currentOutcome}
+            onOutcomeChange={handleOutcomeChange}
+          />
+        </div>
+      )}
       </main>
     </div>
   );
