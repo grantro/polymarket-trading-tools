@@ -1,205 +1,202 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { createChart } from 'lightweight-charts';
-import { formatPolymarketData, calculateSMA, calculateEMA, calculateRSI } from '../utils/indicator-utils';
-import IndicatorsPanel from './IndicatorsPanel';
-import TimeScaleSelector from './TimeScaleSelector';
-import API from '../services/api';
+import React, { useEffect, useRef } from 'react';
 
-function TradingViewChart({ 
-  data, 
-  tokenId, // Add this prop to support refetching
-  activeIndicators, 
-  onIndicatorAdd, 
-  onIndicatorRemove 
-}) {
+const TradingViewChart = ({ 
+  data,
+  containerId,
+  symbol,  // This is our market slug/ID
+  onOutcomeChange,
+  currentOutcome = 'YES'
+}) => {
   const chartContainerRef = useRef(null);
-  const chartRef = useRef(null);
-  const [timeScale, setTimeScale] = useState('12h');
-  const [isLoading, setIsLoading] = useState(false);
-  const [chartData, setChartData] = useState(data);
+  const tvWidgetRef = useRef(null);
 
-  // Handle time scale changes
-  const handleTimeScaleChange = async (newScale) => {
-    setIsLoading(true);
-    try {
-      const newData = await API.fetchPriceHistory(tokenId, newScale);
-      setChartData(newData);
-      setTimeScale(newScale);
-      
-      if (chartRef.current?.mainSeries) {
-        const formattedData = formatPolymarketData(newData);
-        chartRef.current.mainSeries.setData(formattedData);
-        updateIndicators(formattedData);
-      }
-    } catch (error) {
-      console.error('Failed to fetch data for new time scale:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (!data?.history || !chartContainerRef.current || !window.TradingView) return;
 
-  // Update indicators when data changes
-  const updateIndicators = (formattedData) => {
-    if (!chartRef.current?.chart) return;
-  
-    // Clear existing indicator series more safely
-    if (chartRef.current.indicatorSeries && Array.isArray(chartRef.current.indicatorSeries)) {
-      chartRef.current.indicatorSeries.forEach(series => {
-        if (series && chartRef.current.chart) {
-          try {
-            chartRef.current.chart.removeSeries(series);
-          } catch (error) {
-            console.log('Error removing series:', error);
-          }
-        }
-      });
-    }
-  
-    // Reset the indicator series array
-    chartRef.current.indicatorSeries = [];
-  
-    // Add new indicator series
-    activeIndicators.forEach(indicator => {
-      try {
-        let indicatorData;
-        
-        switch (indicator.type) {
-          case 'SMA':
-            indicatorData = calculateSMA(formattedData, indicator.period);
-            break;
-          case 'EMA':
-            indicatorData = calculateEMA(formattedData, indicator.period);
-            break;
-          case 'RSI':
-            indicatorData = calculateRSI(formattedData, indicator.period);
-            break;
-          default:
-            return;
-        }
-  
-        if (indicatorData && indicatorData.length > 0 && chartRef.current?.chart) {
-          const series = chartRef.current.chart.addLineSeries({
-            color: indicator.color,
-            lineWidth: 1,
-            title: indicator.label,
+    const datafeed = {
+      onReady: (callback) => {
+        setTimeout(() => {
+          callback({
+            supported_resolutions: ['1', '5', '15', '30', '60', '240', '1D'],
+            supports_time: true,
+            supports_marks: false,
+            supports_timescale_marks: false,
+            supports_search: false
           });
-          
-          if (series) {
-            series.setData(indicatorData);
-            chartRef.current.indicatorSeries.push(series);
+        }, 0);
+      },
+      searchSymbols: (userInput, exchange, symbolType, onResult) => {
+        setTimeout(() => {
+          onResult([]);
+        }, 0);
+      },
+      resolveSymbol: (_, onSymbolResolvedCallback, onResolveErrorCallback) => {
+        setTimeout(() => {
+          if (!symbol) {
+            onResolveErrorCallback('Symbol not found');
+            return;
           }
-        }
-      } catch (error) {
-        console.error(`Error adding ${indicator.label}:`, error);
-      }
-    });
-  };
+      
+          onSymbolResolvedCallback({
+            name: symbol,             // market_slug as display name
+            ticker: symbol,           // market_slug as ticker
+            full_name: symbol,        // market_slug as full name
+            description: symbol,
+            type: 'crypto',
+            session: '24x7',
+            timezone: 'Etc/UTC',
+            minmov: 1,
+            pricescale: 10000,
+            has_intraday: true,
+            has_no_volume: true,
+            supported_resolutions: ['1', '5', '15', '30', '60', '240', '1D'],
+          });
+        }, 0);
+      },
+      getBars: (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
+        const { from, to } = periodParams;
+        
+        setTimeout(() => {
+          try {
+            const bars = data.history
+              .filter(item => {
+                const timestamp = item.t;
+                return timestamp >= from && timestamp <= to;
+              })
+              .map(item => ({
+                time: item.t * 1000,
+                open: parseFloat(item.p),
+                high: parseFloat(item.p),
+                low: parseFloat(item.p),
+                close: parseFloat(item.p)
+              }));
 
-// Move handleResize definition before the event listener setup
+            onHistoryCallback(bars, {
+              noData: bars.length === 0,
+              nextTime: bars.length ? undefined : null
+            });
+          } catch (error) {
+            onErrorCallback(error);
+          }
+        }, 0);
+      },
+      subscribeBars: () => {},
+      unsubscribeBars: () => {},
+    };
 
-useEffect(() => {
-  if (!chartContainerRef.current || !data) return;
+    const widgetOptions = {
+      symbol: symbol,
+      interval: '60',
+      container: containerId,
+      library_path: '/charting_library/',
+      locale: 'en',
+      theme: 'dark',
+      custom_css_url: '/custom-trading-view.css',
+      disabled_features: [
+        'use_localstorage_for_settings',
+        'volume_force_overlay',
+        'create_volume_indicator_by_default',
+      ],
+      enabled_features: [
+        'header_widget',
+        'timeframes_toolbar',
+        'header_settings',
+        'show_logo_on_all_charts',
+      ],
+      loading_screen: { backgroundColor: "#1e222d" },
+      toolbar_bg: '#1e222d',
+      width: '100%',
+      height: '100%',
+      autosize: true,
+      fullscreen: false,
+      overrides: {
+        "mainSeriesProperties.style": 2,
+        "mainSeriesProperties.lineStyle.linewidth": 2,
+      },
+      studies_overrides: {},
+      datafeed: datafeed,
+    };
 
-  // First, define the handleResize function
-  const handleResize = () => {
-    if (chartRef.current?.chart && chartContainerRef.current) {
-      chart.applyOptions({
-        width: chartContainerRef.current.clientWidth,
+    try {
+      const widget = new window.TradingView.widget(widgetOptions);
+      tvWidgetRef.current = widget;
+
+      // Set up the toggle button after the widget is ready
+      widget.onChartReady(() => {
+        widget.headerReady().then(() => {
+          const button = widget.createButton({ align: 'left' });
+          
+          // Style the button
+          button.style.display = 'flex';
+          button.style.alignItems = 'center';
+          button.style.padding = '0 12px';
+          button.style.cursor = 'pointer';
+          button.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          button.style.fontSize = '13px';
+          button.style.border = 'none';
+          button.style.backgroundColor = 'transparent';
+          button.style.transition = 'background-color 0.2s ease';
+
+          // Set button content
+          button.innerHTML = `
+            <span class="yes-text" style="
+              color: ${currentOutcome === 'YES' ? '#2962ff' : '#b2b5be'};
+              font-weight: ${currentOutcome === 'YES' ? '600' : '400'};
+              transition: color 0.2s ease;
+            ">YES</span>
+            <span style="margin: 0 6px; color: #4f5966;">/</span>
+            <span class="no-text" style="
+              color: ${currentOutcome === 'NO' ? '#2962ff' : '#b2b5be'};
+              font-weight: ${currentOutcome === 'NO' ? '600' : '400'};
+              transition: color 0.2s ease;
+            ">NO</span>
+          `;
+
+          // Add click handler
+          button.addEventListener('click', () => {
+            const newOutcome = currentOutcome === 'YES' ? 'NO' : 'YES';
+            if (onOutcomeChange) {
+              onOutcomeChange(newOutcome);
+            }
+          });
+
+          // Add hover effects
+          button.addEventListener('mouseenter', () => {
+            button.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+          });
+          button.addEventListener('mouseleave', () => {
+            button.style.backgroundColor = 'transparent';
+          });
+        });
       });
+
+    } catch (error) {
+      console.error('Error creating TradingView widget:', error);
     }
-  };
 
-  const chart = createChart(chartContainerRef.current, {
-    layout: {
-      background: { color: '#ffffff' },
-      textColor: '#191919',
-    },
-    grid: {
-      vertLines: { color: '#f0f0f0' },
-      horzLines: { color: '#f0f0f0' },
-    },
-    width: chartContainerRef.current.clientWidth,
-    height: 300,
-    rightPriceScale: {
-      borderVisible: false,
-      scaleMargins: {
-        top: 0.1,
-        bottom: 0.1,
-      },
-    },
-    timeScale: {
-      borderVisible: false,
-      timeVisible: true,
-      secondsVisible: false,
-    },
-    crosshair: {
-      mode: 1,
-      vertLine: {
-        width: 1,
-        color: '#758696',
-        style: 1,
-      },
-      horzLine: {
-        width: 1,
-        color: '#758696',
-        style: 1,
-      },
-    },
-  });
-
-  // Add event listener after function is defined
-  window.addEventListener('resize', handleResize);
-
-  const mainSeries = chart.addAreaSeries({
-    lineColor: '#2962FF',
-    topColor: 'rgba(41, 98, 255, 0.3)',
-    bottomColor: 'rgba(41, 98, 255, 0)',
-    lineWidth: 2,
-  });
-
-  const formattedData = formatPolymarketData(data);
-  
-  if (formattedData.length > 0) {
-    mainSeries.setData(formattedData);
-    updateIndicators(formattedData);
-    chart.timeScale().fitContent();
-  }
-
-  chartRef.current = {
-    chart,
-    mainSeries,
-    indicatorSeries: [],
-  };
-
-  // Clean up
-  return () => {
-    window.removeEventListener('resize', handleResize);
-    chart.remove();
-  };
-}, [data, updateIndicators]);
+    return () => {
+      if (tvWidgetRef.current) {
+        try {
+          tvWidgetRef.current.remove();
+          tvWidgetRef.current = null;
+        } catch (error) {
+          console.error('Error cleaning up TradingView widget:', error);
+        }
+      }
+    };
+  }, [data, containerId, symbol, currentOutcome, onOutcomeChange]);
 
   return (
-    <div className="trading-view-chart space-y-4">
-      <div className="flex justify-between items-center">
-        <TimeScaleSelector 
-          currentScale={timeScale} 
-          onScaleChange={handleTimeScaleChange}
-          disabled={isLoading}
-        />
-        <IndicatorsPanel 
-          activeIndicators={activeIndicators}
-          onIndicatorAdd={onIndicatorAdd}
-          onIndicatorRemove={onIndicatorRemove}
-        />
-      </div>
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-          <span className="text-gray-600">Loading...</span>
-        </div>
-      )}
-      <div ref={chartContainerRef} className="chart-container relative" />
-    </div>
+    <div 
+      id={containerId}
+      ref={chartContainerRef}
+      className="w-full h-full"
+      style={{
+        position: 'relative',
+        height: '500px'
+      }}
+    />
   );
-}
+};
 
 export default TradingViewChart;

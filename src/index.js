@@ -1,17 +1,17 @@
+// src/index.js
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { AppProvider } from './context/AppContext';
 
-const root = document.getElementById('root');
-root.setAttribute('data-csp', 'script-src \'self\' \'unsafe-eval\'');
+const container = document.getElementById('root');
+const root = createRoot(container);
 
-ReactDOM.render(
+root.render(
   <React.StrictMode>
     <AppProvider>
       <App />
     </AppProvider>
-  </React.StrictMode>,
-  root
+  </React.StrictMode>
 );

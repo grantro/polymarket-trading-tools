@@ -1,43 +1,36 @@
 import axios from 'axios';
 
+// src/api.js
 const API = {
   fetchEvent: async (eventSlug) => {
-    console.log('Fetching event for slug:', eventSlug);
     const baseUrl = "https://gamma-api.polymarket.com";
     const eventsEndpoint = `${baseUrl}/events`;
     
     const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       'Accept': 'application/json',
-      'Accept-Language': 'en-US,en;q=0.9',
+      'Content-Type': 'application/json'
     };
 
     const params = { slug: eventSlug };
 
     try {
       const response = await axios.get(eventsEndpoint, { params, headers });
-      console.log('Event data received:', response.data);
       return response.data;
     } catch (error) {
-      console.error("Error fetching event:", error);
       throw error;
     }
   },
 
   fetchMarketData: async (conditionId) => {
-    console.log('Fetching market data for condition ID:', conditionId);
     const url = `https://clob.polymarket.com/markets/${conditionId}`;
     const headers = {
-      'Content-Type': 'application/json',
-      'User-Agent': 'PolymarketVisualizer/1.0'
+      'Content-Type': 'application/json'
     };
 
     try {
       const response = await axios.get(url, { headers });
-      console.log('Market data received:', response.data);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching market data for ${conditionId}:`, error);
       throw error;
     }
   },
@@ -59,14 +52,13 @@ const API = {
     };
 
     try {
+      // Remove problematic headers, only keep essential ones
       const response = await axios.get(url, {
         params,
         headers: {
-          'Accept-Encoding': 'gzip',
-          'User-Agent': 'PolymarketVisualizer/1.0'
+          'Content-Type': 'application/json'
         }
       });
-
       return response.data;
     } catch (error) {
       console.error('Error fetching price history:', error);

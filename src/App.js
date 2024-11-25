@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import TradingViewChart from './components/TradingViewChart';
+import MarketCard from './components/MarketCard';
 import { useAppContext } from './context/AppContext';
 import API from './services/api';
 import './App.css';
@@ -27,6 +27,8 @@ const handleIndicatorRemove = (indicatorId) => {
   setActiveIndicators(prev => prev.filter(ind => ind.id !== indicatorId));
 };
 
+  const [isNetworkError, setIsNetworkError] = useState(false);
+
   const handleSearch = async () => {
     setLoading(true);
     setError('');
@@ -42,14 +44,17 @@ const handleIndicatorRemove = (indicatorId) => {
           const marketsPromises = event[0].markets.map(async (market) => {
             const marketData = await API.fetchMarketData(market.conditionId);
             const priceDataPromises = marketData.tokens.map(token => 
-              API.fetchPriceHistory(token.token_id).then(data => ({ [token.outcome]: data }))
+              API.fetchPriceHistory(token.token_id).then(data => ({ 
+                [token.outcome]: data 
+              }))
             );
             const priceDataResults = await Promise.all(priceDataPromises);
             const combinedPriceData = Object.assign({}, ...priceDataResults);
             
             return {
               ...marketData,
-              priceData: combinedPriceData
+              priceData: combinedPriceData,
+              question: market.question // Ensure we have the question
             };
           });
 
@@ -72,7 +77,14 @@ const handleIndicatorRemove = (indicatorId) => {
       }
     } catch (error) {
       console.error('Error in handleSearch:', error);
-      setError('Failed to fetch data. Please try again.');
+      if (!navigator.onLine) {
+        setIsNetworkError(true);
+        setError('No internet connection. Please check your network.');
+      } else if (error.response?.status === 429) {
+        setError('Too many requests. Please try again later.');
+      } else {
+        setError('Failed to fetch data. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -111,38 +123,19 @@ const handleIndicatorRemove = (indicatorId) => {
             <p>{eventData.description}</p>
           </div>
         )}
-        
+
         {marketsData.length > 0 && (
           <div className="markets-container">
             {marketsData.map((market) => (
-              <div key={market.conditionId} className="market-container">
-                <div 
-                  className="market-header"
-                  onClick={() => toggleMarketExpansion(market.conditionId)}
-                >
-                  <h3>{market.question}</h3>
-                  <span className="expand-icon">
-                    {expandedMarkets[market.conditionId] ? '▼' : '▶'}
-                  </span>
-                </div>
-                {expandedMarkets[market.conditionId] && (
-                  <div className="outcomes-container">
-                    {market.tokens.map(token => (
-                      <div key={token.token_id} className="outcome-chart">
-                        <h4 className={`outcome-header ${token.outcome.toLowerCase()}`}>
-                          {token.outcome}
-                        </h4>
-                        <TradingViewChart
-                          data={market.priceData[token.outcome]}
-                          tokenId={token.token_id}
-                          activeIndicators={activeIndicators}
-                          onIndicatorAdd={handleIndicatorAdd}
-                          onIndicatorRemove={handleIndicatorRemove}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div key={market.conditionId} className="border border-gray-200 rounded-lg mb-4 bg-white">
+                <MarketCard
+                  market={market}
+                  expandedMarkets={expandedMarkets}
+                  onToggleExpand={toggleMarketExpansion}
+                  activeIndicators={activeIndicators}
+                  onIndicatorAdd={handleIndicatorAdd}
+                  onIndicatorRemove={handleIndicatorRemove}
+                />
               </div>
             ))}
           </div>

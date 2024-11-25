@@ -7,9 +7,8 @@ const API = {
     const eventsEndpoint = `${baseUrl}/events`;
     
     const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-      'Accept': 'application/json',
-      'Accept-Language': 'en-US,en;q=0.9',
+      'Content-Type': 'application/json',
+      'User-Agent': 'PolymarketVisualizer/1.0'
     };
 
     const params = { slug: eventSlug };
@@ -43,6 +42,8 @@ const API = {
   },
 
   fetchPriceHistory: async (tokenId, timeScale = '12h') => {
+    console.log('Fetching price history for token:', tokenId, 'timeScale:', timeScale);
+    
     const TIME_SCALE_FIDELITY = {
       '1h': 60,
       '6h': 360,
@@ -58,14 +59,20 @@ const API = {
       fidelity
     };
 
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'PolymarketVisualizer/1.0'
+    };
+
     try {
-      const response = await axios.get(url, {
-        params,
-        headers: {
-          'Accept-Encoding': 'gzip',
-          'User-Agent': 'PolymarketVisualizer/1.0'
-        }
-      });
+      const response = await axios.get(url, { params, headers });
+      console.log('Price history received:', response.data);
+      
+      // Validate the response data
+      if (!response.data || !response.data.history) {
+        console.warn('Invalid price history format:', response.data);
+        return { history: [] };
+      }
 
       return response.data;
     } catch (error) {

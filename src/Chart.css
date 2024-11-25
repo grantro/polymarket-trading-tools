@@ -1,204 +1,63 @@
-/* In your Chart.css */
 .chart-container {
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 600px;
-  }
-  
-  .chart-controls {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    padding-left: 40px; /* Align with y-axis */
-  }
-
-  .custom-tooltip {
-    font-family: Arial, sans-serif;
-  }
-  
-  .tooltip-label {
-    color: #333;
-  }
-  
-  .custom-tooltip p {
-    color: #666;
-  }
-  
-  .period-select {
-    padding: 5px;
-    margin-right: 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  
-  .indicator-select {
-    margin-right: 10px;
-  }
-
-  .add-indicator-btn {
-    padding: 5px 10px;
-    font-size: 0.9em;
-    background-color: #d0d0d0; /* Darkened background */
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .add-indicator-btn:hover {
-    background-color: #c0c0c0;
-  }
-  
-  .active-indicators {
-    margin-bottom: 10px;
-    padding-left: 40px; /* Align with y-axis */
-  }
-  
-  .indicator-chip {
-    display: inline-flex;
-    align-items: center;
-    background-color: #f0f0f0;
-    border-radius: 16px;
-    padding: 4px 8px;
-    margin-right: 8px;
-    font-size: 0.9em;
-  }
-  
-  .remove-indicator-btn {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 1.2em;
-    padding: 0 0 0 4px;
-    line-height: 1;
-  }
-  
-  .remove-indicator-btn:hover {
-    color: #333;
-  }
- 
-  .chart-controls button {
-    margin-left: 10px;
-    padding: 5px 10px;
-    font-size: 0.9em;
-    background-color: #d0d0d0;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .chart-controls button:hover {
-    background-color: #c0c0c0;
-  }
-
-  .reset-zoom-btn {
-    margin-top: 10px;
-    padding: 5px 10px;
-    font-size: 0.9em;
-    background-color: #d0d0d0;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  
-  .reset-zoom-btn:hover {
-    background-color: #c0c0c0;
-  }
-
-
-  /* MACD specific styles */
-.macd-line {
-  stroke-width: 2;
+  position: relative;
+  width: 100%;
+  min-height: 400px;  /* Set minimum height */
+  background: white;
 }
 
-.macd-signal {
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
+.chart-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 10px;
 }
 
-.macd-histogram {
-  opacity: 0.7;
+.custom-tooltip {
+  background-color: white;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-/* Stochastic specific styles */
-.stochastic-k {
-  stroke-width: 1.5;
+.indicator-select {
+  padding: 5px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-.stochastic-d {
-  stroke-width: 1.5;
-  stroke-dasharray: 2 2;
+.active-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
 }
 
-/* SuperGuppy specific styles */
-/* Updated SuperGuppy specific styles */
-.superguppy-short {
-  stroke: #ff7300; /* Bright orange for short-term EMAs */
-  opacity: 0.8;
+.indicator-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 0.9em;
 }
 
-.superguppy-long {
-  stroke: #1e90ff; /* Dodger blue for long-term EMAs */
-  opacity: 0.6;
+.remove-indicator-btn {
+  background: none;
+  border: none;
+  margin-left: 4px;
+  cursor: pointer;
+  padding: 2px 6px;
 }
 
-/* Tooltip enhancements for SuperGuppy */
-.recharts-tooltip-item.superguppy-short {
-  color: #ff7300;
-}
-
-.recharts-tooltip-item.superguppy-long {
-  color: #1e90ff;
-}
-
-/* Legend enhancements for SuperGuppy */
-.recharts-legend-item.legend-item-superguppy-short .recharts-surface {
-  stroke: #ff7300;
-}
-
-.recharts-legend-item.legend-item-superguppy-long .recharts-surface {
-  stroke: #1e90ff;
-}
-
-/* Tooltip enhancements for new indicators */
-.recharts-tooltip-item.macd {
-  color: #ff7300;
-}
-
-.recharts-tooltip-item.stochastic {
-  color: #8884d8;
-}
-
-.recharts-tooltip-item.superguppy {
-  color: #82ca9d;
-}
-
-/* Legend enhancements for new indicators */
-.recharts-legend-item.legend-item-macd .recharts-surface {
-  stroke-width: 2;
-}
-
-.recharts-legend-item.legend-item-stochastic .recharts-surface {
-  stroke-width: 1.5;
-}
-
-.recharts-legend-item.legend-item-superguppy .recharts-surface {
-  stroke-width: 1;
-  opacity: 0.7;
-}
-
+/* Ensure chart visibility */
 .recharts-wrapper {
-  cursor: grab;
+  width: 100% !important;
+  height: 100% !important;
 }
 
-.recharts-wrapper:active {
-  cursor: grabbing;
-}
-
-.recharts-brush-slide {
-  cursor: col-resize;
+/* Fix responsive container */
+.recharts-responsive-container {
+  width: 100% !important;
+  height: 400px !important;  /* Match min-height of container */
 }

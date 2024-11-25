@@ -1,0 +1,38 @@
+/* public/custom-trading-view.css */
+
+.outcome-toggle {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+    font-size: 13px;
+    color: #b2b5be;
+    cursor: pointer;
+    user-select: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .outcome-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .outcome-toggle span {
+    transition: color 0.2s ease;
+  }
+  
+  /* Optional: Add some padding to the chart container */
+  .tradingview-widget-container {
+    padding: 0;
+    height: 100%;
+  }
+  
+  /* Ensure the chart takes full height */
+  .tradingview-widget-container > div {
+    height: 100% !important;
+  }
+  
+  /* Style the toolbar background */
+  .chart-page {
+    background-color: #1e222d !important;
+  }
